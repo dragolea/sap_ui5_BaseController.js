@@ -24,49 +24,39 @@ sap.ui.define([
 		 * @class 
 		 * @example
 		 * 
-		 * let newFragment = new this.initalizeFragmentDispatcher(this);
-		 * newFragment.showFragment(fragmentNameFullPath, callbackFunction);
+		 * let newFragment = new this.InitalizeFragmentDispatcher(this);
+		 * newFragment.showFragment(fragmentNameFullPath, callbackFunction); // fragmentNameFullPath => sfh_memo.view.fragments.CheckDialogMessages
 		 */
-		 
-		initalizeFragmentDispatcher: class {
-			
+
+		InitalizeFragmentDispatcher: class {
+
 			// PRIVATE VARIABLES
-			
+
 			constructor(controllerContextParam) {
-				
+
 				/*
-				* @property controllerContextParam  		{Object} 		The current controller context from where the class is being called.
-				*/
-				
+				 * @property controllerContextParam  		{Object} 		The current controller context from where the class is being called.
+				 */
+
 				this.controllerContext = controllerContextParam;
-				
+
 				this._FRAGMENT_STATE = {
 					IS_NOT_ADDED: false,
 					IS_ADDED: true
 				};
 			}
-			
-			destroyFragment(fullPath) {
-				if(this._isFragmentAdded(fullPath)) {
-					
-					this.closeFragmentDialog(fullPath);
-					
-					this.controllerContext._fragmentHelper[fullPath].destroy();
-					this.controllerContext._fragmentHelper[fullPath] = null;
-				}
-			}
-			
+
 			closeFragmentDialog(fullPath) {
-				if(this._isFragmentAdded(fullPath))
+				if (this._isFragmentAdded(fullPath))
 					this.controllerContext._fragmentHelper[fullPath].close();
 			}
-			
+
 			openFragmentDialog(fullPath) {
-				if(this._isFragmentAdded(fullPath))
+				if (this._isFragmentAdded(fullPath))
 					this.controllerContext._fragmentHelper[fullPath].open();
 			}
-			
-			_addFragmentStorage() {
+
+			_addFragmentHelper() {
 				if (this.controllerContext._fragmentHelper === undefined)
 					this.controllerContext._fragmentHelper = {};
 			}
@@ -76,7 +66,7 @@ sap.ui.define([
 			}
 
 			_isFragmentAdded(fullPath) {
-				if(this.controllerContext._fragmentHelper)
+				if (this.controllerContext._fragmentHelper)
 					if (this.controllerContext._fragmentHelper[fullPath])
 						return this._FRAGMENT_STATE.IS_ADDED;
 
@@ -85,10 +75,10 @@ sap.ui.define([
 
 			_loadFragment(fullPath) {
 				let that = this;
-				
+
 				try {
-					this._addFragmentStorage();
-					
+					this._addFragmentHelper();
+
 					return sap.ui.core.Fragment.load({
 						id: this._substractFragmentID(fullPath),
 						name: fullPath,
@@ -100,17 +90,17 @@ sap.ui.define([
 					this.controllerContext.messageBox._errorMessage(`Error loading fragment ${fullPath}`, error);
 				}
 			}
-			
+
 			_hasCallback(callback) {
-				 (typeof callback === 'function')
-					return true;
+				(typeof callback === 'function')
+				return true;
 			}
-			
+
 			/**
 			 * This method loads and shows the fragment.
 			 * @param 		fullPath 				{string} 			Full path of the fragment e.g. 'crm.component.view.fragments.Sales_Order'.
 			 * @param 		callbackFunction		{Function} 			This callback will be called when the fragment was loaded and can contain E.G. Calling a webservice to set the model
-			 * @memberof initalizeFragmentDispatcher
+			 * @memberof InitalizeFragmentDispatcher
 			 * @method
 			 */
 
@@ -122,7 +112,7 @@ sap.ui.define([
 				else
 				if (this._isFragmentAdded(fullPath) === this._FRAGMENT_STATE.IS_NOT_ADDED) {
 					let loadedFragment = this._loadFragment(fullPath);
-					
+
 					loadedFragment.then(function (dialog) {
 						that.controllerContext.getView().addDependent(dialog);
 						that.controllerContext._fragmentHelper[fullPath] = dialog;
@@ -131,13 +121,13 @@ sap.ui.define([
 
 					loadedFragment.finally(function () {
 						if (that._hasCallback(callbackFunction))
-							callbackFunction.call(that.controllerContext, that.controllerContext._fragmentHelper[fullPath]); 
-						
+							callbackFunction.call(that.controllerContext, that.controllerContext._fragmentHelper[fullPath]);
+
 						that.openFragmentDialog(fullPath);
 
 					});
 
-					loadedFragment.catch(function(error) {
+					loadedFragment.catch(function (error) {
 						that.controllerContext.messageBox._errorMessage(`Error showing fragment ${fullPath}`, error);
 						that.closeFragmentDialog(fullPath);
 					});
@@ -156,8 +146,14 @@ sap.ui.define([
 		 */
 
 		destroyFragment: function (fullPath) {
-			this._fragmentHelper[fullPath].destroy();
-			this._fragmentHelper[fullPath] = null;
+			if (this._fragmentHelper) {
+				if (this._fragmentHelper.hasOwnProperty(fullPath)) {
+					if (this._fragmentHelper[fullPath] !== null) {
+						this._fragmentHelper[fullPath].destroy();
+						this._fragmentHelper[fullPath] = null;
+					}
+				}
+			}
 		},
 
 		/**
@@ -486,7 +482,7 @@ sap.ui.define([
 
 			function _warningMessage(message, detailText = null) {
 				sap.m.MessageBox.warning(message, {
-					title: 'Warning',
+					title: 'Waarschuwing',
 					onClose: null,
 					initialFocus: null,
 					details: detailText,
@@ -587,7 +583,7 @@ sap.ui.define([
 		 * @class
 		 * @example
 		 * let controlsValidation;
-		 * controlsValidation = new this.controlsValidation(this);
+		 * controlsValidation = new this.ControlsValidation(this);
 		 * controlsValidation.addControls(['controlID_1','controlID_2', '...']);
 		 * controlsValidation.addSubmitButton('CHANGE_TO_YOUR_OWN_SUBMIT_BUTTON_ID');
 		 * 
@@ -596,7 +592,7 @@ sap.ui.define([
 		 * controlsValidation.bundleSubmitButtonEnablement();
 		 */
 
-		controlsValidation: class {
+		ControlsValidation: class {
 			// PRIVATE _userControls = [];
 
 			constructor(currentContext) {
@@ -624,7 +620,7 @@ sap.ui.define([
 			/**
 			 * This gets from an Array the IDs and checks them if the controls are present and adds them into an array for later use.
 			 * @param    {controls}
-			 * @memberof controlsValidation
+			 * @memberof ControlsValidation
 			 * @method
 			 */
 
@@ -644,7 +640,7 @@ sap.ui.define([
 			 * This method adds the submit button
 			 * @method
 			 * @param    {controls}
-			 * @memberof controlsValidation
+			 * @memberof ControlsValidation
 			 */
 
 			addSubmitButton(buttonID) {
@@ -658,7 +654,7 @@ sap.ui.define([
 			/**
 			 * This methods checks the validation and sets the submit button to enabled otherwise the submit button is not enabled
 			 * @method
-			 * @memberof controlsValidation
+			 * @memberof ControlsValidation
 			 */
 
 			bundleSubmitButtonEnable(isEnabled) {
@@ -672,7 +668,7 @@ sap.ui.define([
 			* This method validates the Inputs, Select, DatePicker by checking their emptines. In case a UI Element is empty then a VALUE_STATE.ERROR will be set
 			  otherwise VALUE_STATE.NONE.
 			* @method
-			* @memberof controlsValidation
+			* @memberof ControlsValidation
 			*/
 
 			validateFields() {
@@ -735,7 +731,7 @@ sap.ui.define([
 		 * let tableItems = this.byId('CHANGE_TO_YOUR_OWN_TABLE_ID').getItems(), 
 		 *     tableValidation = this.tableValidation();
 		 * 
-		 * let tableValidationClass = new this.tableValidation(this);
+		 * let tableValidationClass = new this.TableValidation(this);
 		 * 
 		 * if(tableValidationClass.isTableNotEmpty(tableItems)) {
 		 *      tableValidationClass.addTableLines(tableItems);
@@ -747,14 +743,14 @@ sap.ui.define([
 		 * }
 		 */
 
-		tableValidation: function () {
+		TableValidation: function () {
 			/**
 			 * Class for validation of table fields
 			 * @class
-			 * @extends controlsValidation
+			 * @extends ControlsValidation
 			 */
 
-			return class initalizeTableFields extends this.controlsValidation {
+			return class initalizeTableFields extends this.ControlsValidation {
 				constructor(viewContext) {
 					super(viewContext);
 
@@ -765,7 +761,7 @@ sap.ui.define([
 				 * This method adds the table items
 				 * @method
 				 * @param    {Object} items     Items of the table
-				 * @memberof tableValidation
+				 * @memberof TableValidation
 				 */
 
 				addTableLines(items) {
@@ -780,7 +776,7 @@ sap.ui.define([
 				 * This method adds the table items
 				 * @method
 				 * @param    {Object} tableItems     Items of the table
-				 * @memberof tableValidation
+				 * @memberof TableValidation
 				 * @static
 				 */
 
@@ -794,7 +790,7 @@ sap.ui.define([
 				/**
 				 * This method add the mandatory table cells; Note tableCells[...] should be changed accordingly to your cells
 				 * @method
-				 * @memberof tableValidation
+				 * @memberof TableValidation
 				 * @private
 				 */
 
@@ -954,7 +950,7 @@ sap.ui.define([
 		addLeadingZeros: function (targetText, maxLength) {
 			if (this.isEmpty(targetText) === false)
 				return targetText.padStart(maxLength, '0');
-				
+
 			return '';
 		},
 
@@ -975,12 +971,12 @@ sap.ui.define([
 		 *	 }
 		 * };
 		 * 
-		 * let newRequest = new this.requestInitialization();
+		 * let newRequest = new this.RequestInitialization();
 		 * newRequest.setEntities(odataEntities);
 		 * newRequest.doRequest('read');
 		 */
 
-		requestInitialization: class {
+		RequestInitialization: class {
 
 			constructor() {
 				this._odataEntities = {};
@@ -994,12 +990,16 @@ sap.ui.define([
 				 * @property {sap.ui.model.Sorter[]}		_odataEntities.sorters				Map should contain success callback where the data should be handled.
 				 * @property {sap.ui.model.Filter[]}		_odataEntities.filters				Map should contain success callback where the data should be handled.
 				 */
-				 this._odataEntities = {};
+
+				this._busyDialog = new sap.m.BusyDialog({
+					busyIndicatorDelay: 2000,
+					busyIndicatorSize: sap.ui.core.BusyIndicatorSize.Auto
+				});
 			}
 
 			/*
 			 * @private
-			 * @memberof requestInitialization
+			 * @memberof RequestInitialization
 			 * @method
 			 */
 
@@ -1017,8 +1017,8 @@ sap.ui.define([
 						odataBaseFilters['filters'] = [entities.filters];
 				}
 
-				if (entities.hasOwnProperty('filters'))
-					odataBaseSorters['filters'] = entities.sorters;
+				if (entities.hasOwnProperty('sorters'))
+					odataBaseSorters['sorters'] = entities.sorters;
 
 				if (entities.hasOwnProperty('select'))
 					optionalUrlODataParameters.set('$select', entities.select);
@@ -1040,8 +1040,11 @@ sap.ui.define([
 					mandatoryODataEntities['currentControllerContext'] = entities.currentView.getController();
 				}
 
-				if (entities.hasOwnProperty('oDataServiceModel'))
+				if (entities.hasOwnProperty('oDataServiceModel')) {
 					mandatoryODataEntities['oDataServiceModel'] = entities.oDataServiceModel;
+					
+					this._attachBusyStateEvents.call(mandatoryODataEntities['oDataServiceModel'], this._busyDialog);
+				}
 
 				if (entities.hasOwnProperty('entitySet'))
 					mandatoryODataEntities['entitySet'] = entities.entitySet;
@@ -1049,7 +1052,8 @@ sap.ui.define([
 				if (entities.hasOwnProperty('successCallback'))
 					mandatoryODataEntities['successCallback'] = entities.successCallback;
 
-				this._odataEntities = {...mandatoryODataEntities,
+				this._odataEntities = {
+					...mandatoryODataEntities,
 					...optionalUrlODataParameters,
 					...postingData,
 					...odataBaseSorters,
@@ -1066,10 +1070,21 @@ sap.ui.define([
 					`${errorResponse.responseText}`);
 			}
 
+			_attachBusyStateEvents(busyDialog) {
+				this.attachEventOnce('requestSent', () => {
+					busyDialog.open();
+				});
+
+				this.attachEventOnce('requestCompleted', () => {
+					busyDialog.close();
+				});
+			}
+
 			_buildReadRequest() {
 				let that = this;
 
 				return new Promise(function (resolve, reject) {
+
 					that._odataEntities.oDataServiceModel.read(`/${that._odataEntities.entitySet}`, {
 						success: function (result) {
 							resolve(result);
@@ -1159,13 +1174,14 @@ sap.ui.define([
 					return this._buildDeleteRequest();
 
 				this._odataEntities.currentControllerContext.messageBox.showErrorMessage(ERROR_MESSAGE);
+				
 				return;
 			}
 
 			/**
 			 * This method creates a Promise and perform the .read .create .update .delete operation.
 			 * 
-			 * @memberof requestInitialization
+			 * @memberof RequestInitialization
 			 * @param		{String}	requestType This parameter is mandatory to be provided and has the following values : 'read', 'create', 'update', 'delete'
 			 * @method
 			 * @example .doRequest('read'); .doRequest('create'); .doRequest('update'); .doRequest('delete'); 
@@ -1201,19 +1217,19 @@ sap.ui.define([
 						'{tableModel>Ltext}'
 					],
 					columns: [
-						this.getText('SFH1.OVERVIEW.GLACCOUNT_LABEL_ID'),
-						this.getText('SFH1.OVERVIEW.GLACCOUNT_LABEL_TEXT')
+						this.getText('SFH1.OVERVIEW.TABLE.GLACCOUNT_LABEL_ID'),
+						this.getText('SFH1.OVERVIEW.TABLE.GLACCOUNT_LABEL_TEXT')
 					]
 				},
 				controllerContext: this
 			}
 
-			let initalizeSuggestion = new this.initializeSuggestion(entities);
+			let initalizeSuggestion = new this.InitializeSuggestion(entities);
 				initalizeSuggestion.startSuggestion();
 				
 		 */
 
-		initializeSuggestion: class {
+		InitializeSuggestion: class {
 			constructor(entities) {
 
 				/**
@@ -1235,8 +1251,9 @@ sap.ui.define([
 					},
 					controllerContext: entities.controllerContext
 				}
-				
+
 				this._suggestionFilters = null;
+				this._maxSuggestionFields = 0;
 
 			}
 
@@ -1247,7 +1264,7 @@ sap.ui.define([
 					constructedBindingNameList.push(this._constructFilterBindingPath(bindingPath));
 				}, this);
 
-				this._suggestionFilters = this.entities.controllerContext.buildFilters(this._getInputValue(), constructedBindingNameList);
+				this._suggestionFilters = this.entities.controllerContext.buildFilters(this.getInputValue(), constructedBindingNameList);
 
 			}
 
@@ -1255,7 +1272,9 @@ sap.ui.define([
 				this.entities.bindings.columns.forEach(function (columnName) {
 					let newColumn = new sap.m.Column({
 						header: new sap.m.Label({
-							text: columnName
+							text: columnName,
+							wrapping: true,
+							wrappingType: sap.m.WrappingType.Hyphenated
 						})
 					})
 
@@ -1264,7 +1283,7 @@ sap.ui.define([
 
 			}
 
-			_getInputValue() {
+			getInputValue() {
 				let that = this;
 
 				if (this.entities.suggestionInputEvent.getParameter('suggestValue'))
@@ -1273,38 +1292,96 @@ sap.ui.define([
 				return false;
 			}
 
+			_whenDeviceBuildSuggestionMaxWidth() {
+
+				if (this.entities.controllerContext.getDevice.isDesktop()) {
+					const COLUMN_WIDTH_LENGTH_IN_PERCENTAGE = 5;
+					this._maxSuggestionFields += COLUMN_WIDTH_LENGTH_IN_PERCENTAGE;
+				} else
+				if (this.entities.controllerContext.getDevice.isTablet()) {
+					const COLUMN_WIDTH_LENGTH_IN_PERCENTAGE = 15;
+					this._maxSuggestionFields += COLUMN_WIDTH_LENGTH_IN_PERCENTAGE;
+				}
+
+			}
+
 			_buildRows() {
 				let columnTemplate = new sap.m.ColumnListItem();
 
 				this.entities.bindings.rows.forEach(function (bindingRow) {
-					let labelField = new sap.m.Label({
+
+					let labelColumn = new sap.m.Label({
 						text: bindingRow,
-						wrapping: true
+						wrapping: true,
+						wrappingType: sap.m.WrappingType.Hyphenated
 					});
 
-					columnTemplate.addCell(labelField);
+					columnTemplate.addCell(labelColumn);
+
+					this._whenDeviceBuildSuggestionMaxWidth();
 
 				}, this);
 
 				this.entities.suggestionInputEvent.getSource().bindAggregation('suggestionRows', {
 					path: this.entities.suggestionTargetModel,
 					template: columnTemplate,
-					templateShareable: false
+					templateShareable: false // NOTE : When unbindAggregation is called the __template__ is destroyed.
 				});
 			}
 
-			_isSuggestionPopupNotBuilded() {
+			isPopupNotBuilded() {
 				const inputSource = this.entities.suggestionInputEvent.getSource();
 
 				if (inputSource._hasTabularSuggestions() === false)
 					return true;
+
 			}
 
-			/*
-			_attachPopupBodyDestroyOnLeaveInput() {
-				const inputSource = this.entities.suggestionInputEvent.getSource();
+			_setSuggestMaxWidth() {
+				if (this._maxSuggestionFields > 0)
+					this.entities.suggestionInputEvent.getSource().setMaxSuggestionWidth(`${this._maxSuggestionFields.toString()}%`);
 			}
-			*/
+
+			removeTabularSuggestions() {
+				const inputSource = this.entities.suggestionInputEvent.getSource();
+
+				inputSource.removeAllSuggestionColumns();
+				inputSource.removeAllSuggestionRows();
+				inputSource.unbindAggregation('suggestionRows');
+
+			}
+
+			_validateSuggestionField() {
+				let inputSource = this.entities.suggestionInputEvent.getSource();
+
+				if (inputSource.getBinding('suggestionRows').getLength() > 0)
+					inputSource.setValueState('None');
+				else
+					inputSource.setValueState('Error');
+			}
+
+			/**
+			 * This method is fired after the popup is closed 
+			 * @public
+			 * @memberof InitializeSuggestion
+			 * @method
+			 */
+			
+			// TODO check this function if is still needed.
+			// SOMETHING else was implemented for isBTWEnabled
+			
+			whenPopupClosePreventLosingTablePathLine() {
+				let tabularPopup = this.entities.suggestionInputEvent.getSource()._getSuggestionsPopover()._oPopover,
+					_rebindSelectedTablePathLine = function (event) {
+						this.entities.controllerContext.globalScopeValues._tableDataStorage.getData().selectedTablePathLine = event.getParameters().openBy
+							._getBindingContext('tableModel').getPath();
+					};
+
+				tabularPopup.attachEventOnce('afterClose', function (event) {
+					_rebindSelectedTablePathLine.call(this, event);
+				}.bind(this));
+
+			}
 
 			_doFiltering() {
 				this.entities.suggestionInputEvent.getSource().getBinding('suggestionRows').filter(this._suggestionFilters, sap.ui.model.FilterType
@@ -1313,21 +1390,25 @@ sap.ui.define([
 
 			/**
 			 * This method starts the suggestion list
-			 * 
-			 * @memberof initializeSuggestion
+			 * @public 
+			 * @memberof InitializeSuggestion
 			 * @method
 			 */
 
 			startSuggestion() {
-				if (this._getInputValue()) {
+				if (this.getInputValue()) {
 
-					if (this._isSuggestionPopupNotBuilded()) {
+					if (this.isPopupNotBuilded()) {
 						this._buildColumns();
 						this._buildRows();
+						this._setSuggestMaxWidth();
 					}
 
 					this._buildFilters();
 					this._doFiltering();
+
+					this._validateSuggestionField();
+
 				}
 			}
 
