@@ -4,12 +4,12 @@
   "description": "JavaScript UI5 Helper",
   "main": "BaseController.js",
   "scripts": {
-    "buildjs" : "jsdoc BaseController.js -t node_modules/clean-jsdoc-theme/"
-    
+    "buildjs": "jsdoc BaseController.js -t node_modules/clean-jsdoc-theme/"
   },
   "author": "Daniel Dragolea",
   "license": "ISC",
   "devDependencies": {
-    "clean-jsdoc-theme": "^2.2.10"
+    "clean-jsdoc-theme": "^2.2.10",
+    "jsdoc": "^3.6.3"
   }
 }

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>Home</title>
+    <title>TableValidation</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -47,28 +47,10 @@
 
 <div id="main">
     
-
+    <h1 class="page-title">TableValidation</h1>
     
 
-
-
     
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
 
 
 
@@ -81,7 +63,7 @@
         
         <h2>
         
-        BaseController.js
+        TableValidation
         
         </h2>
         
@@ -94,11 +76,107 @@
     <div class="container-overview">
     
         
-            <div class="description">This BaseController is a library of common functions used in UI5</div>
-        
 
-        
-        
+    
+
+    <h4 class="name" id="TableValidation"><span class="type-signature"></span>new TableValidation<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This class initalize the validation for the inputs, datepicker, select.
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <div class="details-item-container">
+            <dt class="tag-source">Source:</dt>
+            <dd class="tag-source"><ul class="dummy"><li>
+                <a href="BaseController.js.html">BaseController.js</a>, <a href="BaseController.js.html#line746">line 746</a>
+            </li></ul></dd>
+        </div>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="method-member-container flex flex-col w-100 overflow-auto mt-20">
+    <strong>Example</strong>
+    
+    <pre class="prettyprint"><code>let tableItems = this.byId('CHANGE_TO_YOUR_OWN_TABLE_ID').getItems(), 
+    tableValidation = this.tableValidation();
+
+let tableValidationClass = new this.TableValidation(this);
+
+if(tableValidationClass.isTableNotEmpty(tableItems)) {
+     tableValidationClass.addTableLines(tableItems);
+     tableValidation.addSubmitButton('SUBMIT_BUTTON_ID');
+ 
+     tableValidation.validateFields();
+
+     tableValidation.checkSubmitButtonEnablement();
+}</code></pre>
+
+</div>
+
+
     
     </div>
 
@@ -114,6 +192,280 @@
 
     
 
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id=".addTableLines"><span class="type-signature">(static) </span>addTableLines<span class="signature">(items)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This method adds the table items
+</div>
+
+
+
+
+
+
+
+
+
+    <div class="method-member-container flex flex-col w-100 overflow-auto mt-20">
+        <strong>Parameters:</strong>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>items</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Items of the table</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    </div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <div class="details-item-container">
+            <dt class="tag-source">Source:</dt>
+            <dd class="tag-source"><ul class="dummy"><li>
+                <a href="BaseController.js.html">BaseController.js</a>, <a href="BaseController.js.html#line767">line 767</a>
+            </li></ul></dd>
+        </div>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
+            
+
+    
+
+    <h4 class="name" id=".isTableNotEmpty"><span class="type-signature">(static) </span>isTableNotEmpty<span class="signature">(tableItems)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This method adds the table items
+</div>
+
+
+
+
+
+
+
+
+
+    <div class="method-member-container flex flex-col w-100 overflow-auto mt-20">
+        <strong>Parameters:</strong>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>tableItems</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Items of the table</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    </div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <div class="details-item-container">
+            <dt class="tag-source">Source:</dt>
+            <dd class="tag-source"><ul class="dummy"><li>
+                <a href="BaseController.js.html">BaseController.js</a>, <a href="BaseController.js.html#line783">line 783</a>
+            </li></ul></dd>
+        </div>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
     
 
     

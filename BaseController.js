@@ -342,9 +342,9 @@ sap.ui.define([
 		 * 
 		 */
 
-		getText: function (i18nTextLabel) {
+		getText: function (i18nTextLabel, placeHolder) {
 			if (this._isResourceBundleEnabled()) {
-				return this.getOwnerComponent().getModel("i18n").getResourceBundle().getText(i18nTextLabel);
+				return this.getOwnerComponent().getModel("i18n").getResourceBundle().getText(i18nTextLabel, [placeHolder]);
 			}
 		},
 
@@ -469,9 +469,9 @@ sap.ui.define([
 				});
 			}
 
-			function _successMessage(message, detailText = null) {
-				sap.m.MessageBox.success(message, {
-					title: 'Success',
+			function _successMessage(entities, detailText = null) {
+				sap.m.MessageBox.success(entities.message, {
+					title: entities.title,
 					onClose: null,
 					initialFocus: null,
 					details: detailText,
@@ -902,8 +902,10 @@ sap.ui.define([
 
 				let createdFiltersFromBindingFields = [];
 
-				bindingFields.forEach(function (bindingName) {
-					createdFiltersFromBindingFields.push(new sap.ui.model.Filter(bindingName, sap.ui.model.FilterOperator.Contains, typedQuery));
+				bindingFields.forEach((bindingName) => {
+					let newFilter = new sap.ui.model.Filter(bindingName, sap.ui.model.FilterOperator.Contains, typedQuery);
+
+					createdFiltersFromBindingFields.push(newFilter);
 				});
 
 				return new sap.ui.model.Filter({
@@ -984,7 +986,7 @@ sap.ui.define([
 				 * @property {Object}						_odataEntities						Object should contain the mandatory and optional properties for the call of the OData (See example of usage)
 				 * @property {Object}						_odataEntities.oDataServiceModel	Object should contain the ODataModel of type sap.ui.model.odata.v2.ODataModel.
 				 * @property {String}						_odataEntities.entitySet			String should contain the Entity Set to which point the WebService. 
-				 * @property {String}						_odataEntities.dataToPost			In case the .create method is used then dataToPost is mandatory for creation of the fields in the backend.
+				 * @property {String}						_odataEntities.data					In case the .create method is used then data is mandatory for creation of the fields in the backend.
 				 * @property {Object}						_odataEntities.currentView			Object should contain the Current View from where the function is called.
 				 * @property {Function}						_odataEntities.successCallback		Function should contain success callback where the data should be handled.
 				 * @property {sap.ui.model.Sorter[]}		_odataEntities.sorters				Map should contain success callback where the data should be handled.
@@ -1018,7 +1020,10 @@ sap.ui.define([
 				}
 
 				if (entities.hasOwnProperty('sorters'))
-					odataBaseSorters['sorters'] = entities.sorters;
+					if (Array.isArray(entities.sorters))
+						odataBaseSorters['sorters'] = entities.sorters;
+					else
+						odataBaseSorters['sorters'] = [entities.sorters];
 
 				if (entities.hasOwnProperty('select'))
 					optionalUrlODataParameters.set('$select', entities.select);
@@ -1032,8 +1037,8 @@ sap.ui.define([
 				if (entities.hasOwnProperty('skipPagination'))
 					optionalUrlODataParameters.set('$skip', entities.skip);
 
-				if (entities.hasOwnProperty('dataToPost'))
-					postingData['dataToPost'] = entities.dataToPost;
+				if (entities.hasOwnProperty('data'))
+					postingData['data'] = entities.data;
 
 				if (entities.hasOwnProperty('currentView')) {
 					mandatoryODataEntities['currentView'] = entities.currentView;
@@ -1042,12 +1047,12 @@ sap.ui.define([
 
 				if (entities.hasOwnProperty('oDataServiceModel')) {
 					mandatoryODataEntities['oDataServiceModel'] = entities.oDataServiceModel;
-					
+
 					this._attachBusyStateEvents.call(mandatoryODataEntities['oDataServiceModel'], this._busyDialog);
 				}
 
 				if (entities.hasOwnProperty('entitySet'))
-					mandatoryODataEntities['entitySet'] = entities.entitySet;
+					mandatoryODataEntities['entitySet'] = `/${entities.entitySet}`;
 
 				if (entities.hasOwnProperty('successCallback'))
 					mandatoryODataEntities['successCallback'] = entities.successCallback;
@@ -1085,7 +1090,7 @@ sap.ui.define([
 
 				return new Promise(function (resolve, reject) {
 
-					that._odataEntities.oDataServiceModel.read(`/${that._odataEntities.entitySet}`, {
+					that._odataEntities.oDataServiceModel.read(that._odataEntities.entitySet, {
 						success: function (result) {
 							resolve(result);
 						},
@@ -1094,35 +1099,16 @@ sap.ui.define([
 						},
 						urlParameters: that._odataEntities.optionalUrlParameters,
 						filters: that._odataEntities.filters,
-						sorter: [
-							that._odataEntities.sorters
-						]
+						sorter: that._odataEntities.sorters
 					});
 				});
 			}
 
-			_buildCreateRequest() {
+			_buildSaveRecordRequest(requestType) {
 				let that = this;
 
 				return new Promise(function (resolve, reject) {
-					that._odataEntities.oDataServiceModel.create(`/${that._odataEntities.entitySet}`, that._odataEntities.dataToPost, {
-						success: function (result) {
-							resolve(result);
-						},
-						error: function (errorResponse) {
-							reject(errorResponse);
-						},
-						urlParameters: that._odataEntities.optionalUrlParameters,
-						refreshAfterChange: true
-					});
-				});
-			}
-
-			_buildUpdateRequest() {
-				let that = this;
-
-				return new Promise(function (resolve, reject) {
-					that._odataEntities.oDataServiceModel.update(`/${that._odataEntities.entitySet}`, that._odataEntities.dataToPost, {
+					that._odataEntities.oDataServiceModel[requestType](that._odataEntities.entitySet, that._odataEntities.data, {
 						success: function (result) {
 							resolve(result);
 						},
@@ -1139,7 +1125,7 @@ sap.ui.define([
 				let that = this;
 
 				return new Promise(function (resolve, reject) {
-					that._odataEntities.oDataServiceModel.remove(`/${that._odataEntities.entitySet}`, {
+					that._odataEntities.oDataServiceModel.remove(that._odataEntities.entitySet, {
 						success: function (result) {
 							resolve(result);
 						},
@@ -1163,18 +1149,15 @@ sap.ui.define([
 
 				if (requestType === REQUEST_TYPE.READ)
 					return this._buildReadRequest();
-
-				if (requestType === REQUEST_TYPE.CREATE)
-					return this._buildCreateRequest();
-
-				if (requestType === REQUEST_TYPE.UPDATE)
-					return this._buildUpdateRequest();
-
+				else
+				if (requestType === REQUEST_TYPE.CREATE || requestType === REQUEST_TYPE.UPDATE)
+					return this._buildSaveRecordRequest(requestType);
+				else
 				if (requestType === REQUEST_TYPE.DELETE)
 					return this._buildDeleteRequest();
 
 				this._odataEntities.currentControllerContext.messageBox.showErrorMessage(ERROR_MESSAGE);
-				
+
 				return;
 			}
 
@@ -1217,8 +1200,14 @@ sap.ui.define([
 						'{tableModel>Ltext}'
 					],
 					columns: [
-						this.getText('SFH1.OVERVIEW.TABLE.GLACCOUNT_LABEL_ID'),
-						this.getText('SFH1.OVERVIEW.TABLE.GLACCOUNT_LABEL_TEXT')
+						{
+							text : this.getText('SFH1.OVERVIEW.TABLE.GLACCOUNT_LABEL_ID'),
+							width : '10%'
+						},
+						{
+							text : this.getText('SFH1.OVERVIEW.TABLE.GLACCOUNT_LABEL_TEXT'),
+							width : 'auto'
+						}
 					]
 				},
 				controllerContext: this
@@ -1237,11 +1226,12 @@ sap.ui.define([
 				 * @property {Object}		entities.suggestionInputEvent	Event of the input from where the suggestion is called
 				 * @property {String}		entities.suggestionTargetModel	The collection of the suggestions
 				 * @property {Array}		entities.bindings.rows			An array with the bindings of the fields
-				 * @property {Array}		entities.bindings.columns		An array with the text of the columns
+				 * @property {Array}		entities.bindings.columns		An array of objects with text of the columns and the width
+				 * @property {Object}		entities.bindings.columns.text	Text of the column
+				 * @property {Object}		entities.bindings.columns.width	Width of the column
 				 * @property {Object}		entities.controllerContext		The current controller context from where class is initalized
 				 */
 
-				this._suggestionFilters = null;
 				this.entities = {
 					suggestionInputEvent: entities.suggestionInputEvent,
 					suggestionTargetModel: entities.suggestionTargetModel,
@@ -1253,7 +1243,6 @@ sap.ui.define([
 				}
 
 				this._suggestionFilters = null;
-				this._maxSuggestionFields = 0;
 
 			}
 
@@ -1269,10 +1258,11 @@ sap.ui.define([
 			}
 
 			_buildColumns() {
-				this.entities.bindings.columns.forEach(function (columnName) {
+				this.entities.bindings.columns.forEach(function (column) {
 					let newColumn = new sap.m.Column({
+						width: column.width,
 						header: new sap.m.Label({
-							text: columnName,
+							text: column.text,
 							wrapping: true,
 							wrappingType: sap.m.WrappingType.Hyphenated
 						})
@@ -1284,25 +1274,30 @@ sap.ui.define([
 			}
 
 			getInputValue() {
-				let that = this;
+				let that = this,
+					suggestedValue = this.entities.suggestionInputEvent.getParameter('suggestValue');
 
-				if (this.entities.suggestionInputEvent.getParameter('suggestValue'))
-					return that.entities.suggestionInputEvent.getParameter('suggestValue');
+				if (suggestedValue)
+					return suggestedValue;
 
 				return false;
 			}
 
-			_whenDeviceBuildSuggestionMaxWidth() {
+			_correctWidthRowsWhenDevice(width) {
+				let columnsFullWidth = (this._rowPercentageWhenDevice() * this.entities.bindings.rows.length); // 5 or 15 multiplied with rows number
 
-				if (this.entities.controllerContext.getDevice.isDesktop()) {
-					const COLUMN_WIDTH_LENGTH_IN_PERCENTAGE = 5;
-					this._maxSuggestionFields += COLUMN_WIDTH_LENGTH_IN_PERCENTAGE;
-				} else
-				if (this.entities.controllerContext.getDevice.isTablet()) {
-					const COLUMN_WIDTH_LENGTH_IN_PERCENTAGE = 15;
-					this._maxSuggestionFields += COLUMN_WIDTH_LENGTH_IN_PERCENTAGE;
-				}
+				this.entities.suggestionInputEvent.getSource().setMaxSuggestionWidth(`${columnsFullWidth.toString()}%`);
+			}
 
+			_rowPercentageWhenDevice() {
+				let columnWidthLength = 0;
+
+				if (this.entities.controllerContext.getDevice.isDesktop())
+					columnWidthLength = 15; // on desktop set to 15%
+				else if (this.entities.controllerContext.getDevice.isTablet())
+					columnWidthLength = 35; // on tablet, mobile set to 30%
+
+				return columnWidthLength;
 			}
 
 			_buildRows() {
@@ -1317,8 +1312,6 @@ sap.ui.define([
 					});
 
 					columnTemplate.addCell(labelColumn);
-
-					this._whenDeviceBuildSuggestionMaxWidth();
 
 				}, this);
 
@@ -1335,11 +1328,6 @@ sap.ui.define([
 				if (inputSource._hasTabularSuggestions() === false)
 					return true;
 
-			}
-
-			_setSuggestMaxWidth() {
-				if (this._maxSuggestionFields > 0)
-					this.entities.suggestionInputEvent.getSource().setMaxSuggestionWidth(`${this._maxSuggestionFields.toString()}%`);
 			}
 
 			removeTabularSuggestions() {
@@ -1366,20 +1354,15 @@ sap.ui.define([
 			 * @memberof InitializeSuggestion
 			 * @method
 			 */
-			
-			// TODO check this function if is still needed.
-			// SOMETHING else was implemented for isBTWEnabled
-			
-			whenPopupClosePreventLosingTablePathLine() {
-				let tabularPopup = this.entities.suggestionInputEvent.getSource()._getSuggestionsPopover()._oPopover,
-					_rebindSelectedTablePathLine = function (event) {
-						this.entities.controllerContext.globalScopeValues._tableDataStorage.getData().selectedTablePathLine = event.getParameters().openBy
-							._getBindingContext('tableModel').getPath();
-					};
 
-				tabularPopup.attachEventOnce('afterClose', function (event) {
-					_rebindSelectedTablePathLine.call(this, event);
-				}.bind(this));
+			onPopupClose() {
+
+				/*	let tabularPopup = this.entities.suggestionInputEvent.getSource()._getSuggestionsPopover()._oPopover;
+
+					tabularPopup.attachEventOnce('afterClose', function (event) {
+						// TODO ADD THE FUNCTION 
+					}.bind(this));
+				*/
 
 			}
 
@@ -1399,9 +1382,10 @@ sap.ui.define([
 				if (this.getInputValue()) {
 
 					if (this.isPopupNotBuilded()) {
+						this._correctWidthRowsWhenDevice();
+
 						this._buildColumns();
 						this._buildRows();
-						this._setSuggestMaxWidth();
 					}
 
 					this._buildFilters();
@@ -1445,5 +1429,82 @@ sap.ui.define([
 				inputSource.setValue(inputSource.getValue().toUpperCase());
 		},
 
+		/**
+		 * This class let you to clean all the inputs provided as Array.
+		 * 
+		 * @class
+		 * @example
+			let entities = {
+				arrayInputs : ['ID_1','ID_2','ID_3'],
+				controllerContext : this
+			};
+			
+			let cleanInputClass = new this.cleanInputs(entities);
+				cleanInputClass.cleanAllControls();
+		*/
+		
+		cleanInputs: class {
+			constructor(entities) {
+				/**
+				 * @property {Object}		entities						Object should contain the inputs array and the context of the controller
+				 * @property {Object}		entities.arrayInputs			Object should contain the inputs array
+				 * @property {Object}		entities.controllerContext		Object should contain the 'this' of the controller
+				 */
+				 
+				this.entities = {
+					arrayInputs : entities.arrayControls,
+					controllerContext : entities.controllerContext
+				}
+			}
+
+			_isArrayNotEmpty() {
+				if (Array.isArray(this.inputsArray))
+					return true;
+
+				return false;
+			}
+
+			_cleanByControlType(item) {
+				let getControl = this.entities.controllerContext.getViewControlByID(item),
+					controlType = getControl.getMetadata()._sClassName;
+
+				switch (controlType) {
+				case 'sap.m.Input':
+					if (getControl.getValue !== '')
+						getControl.setValue('');
+
+					if (getControl.getDescription !== '')
+						getControl.setDescription('');
+
+					break;
+
+				case 'sap.m.Select':
+					if (getControl._getSelectedItemText() !== '')
+						getControl.setSelectedKey('');
+
+					break;
+
+				case 'sap.m.UploadCollection':
+					if (getControl.getItems().length !== 0) {
+						getControl.removeAllItems();
+						getControl.destroyItems();
+					}
+					
+					break;
+				}
+			}
+			
+			/**
+			 * This method cleans all the inputs provided as Array
+			 * @public 
+			 * @memberof cleanInputs
+			 * @method
+			 */
+			 
+			cleanAllControls() {
+				if (this._isArrayNotEmpty(this.inputsArray))
+					this.entities.arrayInputs.forEach(this._cleanByControlType);
+			}
+		}
 	});
 });

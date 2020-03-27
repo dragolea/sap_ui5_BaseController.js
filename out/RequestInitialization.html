@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>Home</title>
+    <title>RequestInitialization</title>
 
     <script src="scripts/prettify/prettify.js"></script>
     <script src="scripts/prettify/lang-css.js"></script>
@@ -47,28 +47,10 @@
 
 <div id="main">
     
-
+    <h1 class="page-title">RequestInitialization</h1>
     
 
-
-
     
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
 
 
 
@@ -81,10 +63,13 @@
         
         <h2>
         
-        BaseController.js
+        RequestInitialization
         
         </h2>
         
+        
+            <div class="class-description">This class is a helper for the .create .read .update .remove sap.ui.model.odata.v2.ODataModel</div>
+            <hr/>
         
     
 </header>
@@ -94,11 +79,107 @@
     <div class="container-overview">
     
         
-            <div class="description">This BaseController is a library of common functions used in UI5</div>
-        
 
-        
-        
+    
+    <h2>Constructor</h2>
+    
+
+    <h4 class="name" id="RequestInitialization"><span class="type-signature"></span>new RequestInitialization<span class="signature">()</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <div class="details-item-container">
+            <dt class="tag-source">Source:</dt>
+            <dd class="tag-source"><ul class="dummy"><li>
+                <a href="BaseController.js.html">BaseController.js</a>, <a href="BaseController.js.html#line981">line 981</a>
+            </li></ul></dd>
+        </div>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="method-member-container flex flex-col w-100 overflow-auto mt-20">
+    <strong>Example</strong>
+    
+    <pre class="prettyprint"><code>const odataEntities = {
+  oDataServiceModel: this.getOwnerComponentModel('MEMWF_SRV'), // MANDATORY ENTITY
+  entitySet: this.constants.ODATA.REFERENCE_NUMBER_ENTITY, // MANDATORY ENTITY
+  filters: sap.ui.model.Filter[], // NOT MANDATORY
+  currentView: this.getView(), // MANDATORY ENTITY
+  successCallback : function(responseData) { // MANDATORY ENTITY
+	  let currentControllerContext = this;
+	  // currentControllerContext. ...
+   // HERE YOU HANDLE THE DATA
+	 }
+};
+
+let newRequest = new this.RequestInitialization();
+newRequest.setEntities(odataEntities);
+newRequest.doRequest('read');</code></pre>
+
+</div>
+
+
     
     </div>
 
@@ -113,7 +194,455 @@
     
 
     
+        <h3 class="subsection-title">Members</h3>
 
+        
+            
+<h4 class="name" id="_busyDialog"><span class="type-signature"></span>_busyDialog<span class="type-signature"></span></h4>
+
+
+
+
+
+
+
+
+
+
+    <h5 class="subsection-title">Properties</h5>
+
+    
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>_odataEntities</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Object should contain the mandatory and optional properties for the call of the OData (See example of usage)
+                <h6>Properties</h6>
+
+<table class="props">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>oDataServiceModel</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Object should contain the ODataModel of type sap.ui.model.odata.v2.ODataModel.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>entitySet</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">String should contain the Entity Set to which point the WebService.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>data</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">In case the .create method is used then data is mandatory for creation of the fields in the backend.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>currentView</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Object</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Object should contain the Current View from where the function is called.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>successCallback</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">function</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Function should contain success callback where the data should be handled.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>sorters</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;sap.ui.model.Sorter></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Map should contain success callback where the data should be handled.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>filters</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">Array.&lt;sap.ui.model.Filter></span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Map should contain success callback where the data should be handled.</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+            </td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <div class="details-item-container">
+            <dt class="tag-source">Source:</dt>
+            <dd class="tag-source"><ul class="dummy"><li>
+                <a href="BaseController.js.html">BaseController.js</a>, <a href="BaseController.js.html#line996">line 996</a>
+            </li></ul></dd>
+        </div>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+    
+
+    
+        <h3 class="subsection-title">Methods</h3>
+
+        
+            
+
+    
+
+    <h4 class="name" id=".doRequest"><span class="type-signature">(static) </span>doRequest<span class="signature">(requestType)</span><span class="type-signature"></span></h4>
+
+    
+
+
+
+<div class="description">
+    This method creates a Promise and perform the .read .create .update .delete operation.
+</div>
+
+
+
+
+
+
+
+
+
+    <div class="method-member-container flex flex-col w-100 overflow-auto mt-20">
+        <strong>Parameters:</strong>
+        
+
+<table class="params">
+    <thead>
+    <tr>
+        
+        <th>Name</th>
+        
+
+        <th>Type</th>
+
+        
+
+        
+
+        <th class="last">Description</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    
+
+        <tr>
+            
+                <td class="name"><code>requestType</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">String</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">This parameter is mandatory to be provided and has the following values : 'read', 'create', 'update', 'delete'</td>
+        </tr>
+
+    
+    </tbody>
+</table>
+
+    </div>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+        <div class="details-item-container">
+            <dt class="tag-source">Source:</dt>
+            <dd class="tag-source"><ul class="dummy"><li>
+                <a href="BaseController.js.html">BaseController.js</a>, <a href="BaseController.js.html#line1173">line 1173</a>
+            </li></ul></dd>
+        </div>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="method-member-container flex flex-col w-100 overflow-auto mt-20">
+    <strong>Example</strong>
+    
+    <pre class="prettyprint"><code>.doRequest('read'); .doRequest('create'); .doRequest('update'); .doRequest('delete'); </code></pre>
+
+</div>
+
+
+        
     
 
     
