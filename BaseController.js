@@ -1439,42 +1439,45 @@ sap.ui.define([
 				controllerContext : this
 			};
 			
-			let cleanInputClass = new this.cleanInputs(entities);
+			let cleanInputClass = new this.CleanInputs(entities);
 				cleanInputClass.cleanAllControls();
 		*/
 		
-		cleanInputs: class {
-			constructor(entities) {
+		CleanInputs: class {
+			constructor(entitiesProperties) {
 				/**
-				 * @property {Object}		entities						Object should contain the inputs array and the context of the controller
-				 * @property {Object}		entities.arrayInputs			Object should contain the inputs array
-				 * @property {Object}		entities.controllerContext		Object should contain the 'this' of the controller
+				 * @property {Object}		entitiesProperties						Object should contain the inputs array and the context of the controller
+				 * @property {Object}		entitiesProperties.arrayInputs			Object should contain the inputs array
+				 * @property {Object}		entitiesProperties.controllerContext		Object should contain the 'this' of the controller
 				 */
 				 
 				this.entities = {
-					arrayInputs : entities.arrayControls,
-					controllerContext : entities.controllerContext
+					inputsArray : entitiesProperties.inputsArray,
+					controllerContext : entitiesProperties.controllerContext
 				}
 			}
 
-			_isArrayNotEmpty() {
-				if (Array.isArray(this.inputsArray))
+			_isArrayNotEmpty(inputs) {
+				if (Array.isArray(inputs))
 					return true;
 
 				return false;
 			}
 
 			_cleanByControlType(item) {
-				let getControl = this.entities.controllerContext.getViewControlByID(item),
+				let getControl = this.getViewControlByID(item),
 					controlType = getControl.getMetadata()._sClassName;
 
 				switch (controlType) {
+				case 'sap.m.TextArea':
+				case 'sap.m.DatePicker':
 				case 'sap.m.Input':
 					if (getControl.getValue !== '')
 						getControl.setValue('');
-
-					if (getControl.getDescription !== '')
-						getControl.setDescription('');
+					
+					if(getControl.getDescription)
+						if (getControl.getDescription() !== '')
+							getControl.setDescription('');
 
 					break;
 
@@ -1497,13 +1500,13 @@ sap.ui.define([
 			/**
 			 * This method cleans all the inputs provided as Array
 			 * @public 
-			 * @memberof cleanInputs
+			 * @memberof CleanInputs
 			 * @method
 			 */
 			 
-			cleanAllControls() {
-				if (this._isArrayNotEmpty(this.inputsArray))
-					this.entities.arrayInputs.forEach(this._cleanByControlType);
+			cleanUIFields() {
+				if (this._isArrayNotEmpty(this.entities.inputsArray))
+					this.entities.inputsArray.forEach(this._cleanByControlType, this.entities.controllerContext);
 			}
 		}
 	});
