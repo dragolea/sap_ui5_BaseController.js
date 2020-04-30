@@ -1,8 +1,6 @@
 sap.ui.define([
 	"sap/ui/core/mvc/Controller",
-	"sfh_memo/utils/Constants",
-	"sfh_memo/utils/DoRequest"
-], function (Controller, Constants, DoRequest) {
+], function (Controller, Constants) {
 	"use strict";
 
 	return Controller.extend("sfh_memo.controller.BaseController", {
@@ -12,10 +10,9 @@ sap.ui.define([
 		 * 
 		 * @file   
 		 * @author Daniel-Stefan Dragolea.
-		 * @since  01.02.2020
+		 * @since  01.05.2020
 		 */
 
-		doRequest: DoRequest,
 
 		/**
 
@@ -50,7 +47,19 @@ sap.ui.define([
 				if (this._isFragmentAdded(fullPath))
 					this.controllerContext._fragmentHelper[fullPath].close();
 			}
-
+			
+			_fixSearchFieldSelections(fullPath) {
+				const fragment = this.controllerContext._fragmentHelper[fullPath],
+					  hasLiveChangeEvent = fragment.fireLiveChange !== undefined;
+				
+				if(hasLiveChangeEvent) {
+					fragment.fireLiveChange({
+						value : '',
+						itemsBinding : 'items'
+					});
+				}
+			}
+			
 			openFragmentDialog(fullPath) {
 				if (this._isFragmentAdded(fullPath))
 					this.controllerContext._fragmentHelper[fullPath].open();
@@ -87,18 +96,18 @@ sap.ui.define([
 					});
 
 				} catch (error) {
-					this.controllerContext.messageBox._errorMessage(`Error loading fragment ${fullPath}`, error);
+					this.controllerContext.messageBox.showErrorMessage(`Error loading fragment ${fullPath}`, error.message);
 				}
 			}
 
 			_hasCallback(callback) {
-				(typeof callback === 'function')
-				return true;
+				if(typeof callback === 'function')
+					return true;
 			}
 
 			/**
 			 * This method loads and shows the fragment.
-			 * @param 		fullPath 				{string} 			Full path of the fragment e.g. 'crm.component.view.fragments.Sales_Order'.
+			 * @param 		fullPath 				{String} 			Full path of the fragment e.g. 'crm.component.view.fragments.Sales_Order'.
 			 * @param 		callbackFunction		{Function} 			This callback will be called when the fragment was loaded and can contain E.G. Calling a webservice to set the model
 			 * @memberof InitalizeFragmentDispatcher
 			 * @method
@@ -107,8 +116,10 @@ sap.ui.define([
 			showFragment(fullPath, callbackFunction) { /** @callback 	callbackFunction */
 				let that = this;
 
-				if (this._isFragmentAdded(fullPath) === this._FRAGMENT_STATE.IS_ADDED)
+				if (this._isFragmentAdded(fullPath) === this._FRAGMENT_STATE.IS_ADDED) {
+					this._fixSearchFieldSelections(fullPath);
 					this.openFragmentDialog(fullPath);
+				}
 				else
 				if (this._isFragmentAdded(fullPath) === this._FRAGMENT_STATE.IS_NOT_ADDED) {
 					let loadedFragment = this._loadFragment(fullPath);
@@ -271,10 +282,6 @@ sap.ui.define([
 			return newDate.format(objectDate);
 
 		},
-
-		constants: function () {
-			return Constants;
-		}(),
 
 		/**
 		 * This method retrieves the component model name with the given model name.
@@ -678,9 +685,12 @@ sap.ui.define([
 				};
 
 				this.userControls.forEach(function (userControl) {
-					const FIELD_TYPE = userControl.getMetadata()._sClassName;
-
-					switch (FIELD_TYPE) {
+					var fieldType = userControl;
+					
+					if(fieldType) 
+						fieldType = userControl.getMetadata()._sClassName;
+					
+					switch (fieldType) {
 					case 'sap.m.Select':
 						if (userControl.getSelectedItem() === null) {
 							userControl.setValueState(VALUE_STATES.ERROR);
@@ -769,7 +779,6 @@ sap.ui.define([
 						this.tableLines.push(line);
 					}, this);
 
-					this._addMandatoryTableCells();
 				}
 
 				/**
@@ -788,22 +797,21 @@ sap.ui.define([
 				}
 
 				/**
-				 * This method add the mandatory table cells; Note tableCells[...] should be changed accordingly to your cells
+				 * This method add the mandatory table columns;
+				 * @param mandatoryColumns {Array}	Array numbers of the mandatory columns. E.G. [1, 5, 8] => mandatory columns from the table are 1, 5, 8
 				 * @method
 				 * @memberof TableValidation
 				 * @private
 				 */
 
-				_addMandatoryTableCells() {
+				addMandatoryColumns(mandatoryColumns) {
 					this.tableLines.forEach(function (item) {
 						let tableCells = item.getAggregation('cells');
-
-						this.userControls.push(tableCells[3]); // THIS COLUMN IS MARKED AS MANDATORY
-						this.userControls.push(tableCells[5]); // THIS COLUMN IS MARKED AS MANDATORY
-						this.userControls.push(tableCells[6]); // THIS COLUMN IS MARKED AS MANDATORY
-						this.userControls.push(tableCells[9]); // THIS COLUMN IS MARKED AS MANDATORY
-
-						// IF the number of the colums is changed / rearenged the index of the columns is also changed
+						
+						mandatoryColumns.forEach(function(columnIndex) {
+							this.userControls.push(tableCells[columnIndex]);
+						}, this);
+						
 					}, this);
 				}
 			};
@@ -813,7 +821,12 @@ sap.ui.define([
 			if (this.getViewControlByID(buttonID))
 				this.getViewControlByID(buttonID).setEnabled(isEnabled);
 		},
-
+		
+		toggleControlVisibility: function (buttonID, isVisible) {
+			if (this.getViewControlByID(buttonID))
+				this.getViewControlByID(buttonID).setVisible(isVisible);
+		},
+		
 		/**
 		 * This method creates a message toast
 		 * @param messageToast 								{String} The message to be showed
@@ -967,8 +980,8 @@ sap.ui.define([
 		 *   filters: sap.ui.model.Filter[], // NOT MANDATORY
 		 *   currentView: this.getView(), // MANDATORY ENTITY
 		 *   successCallback : function(responseData) { // MANDATORY ENTITY
-		 *	  let currentControllerContext = this;
-		 *	  // currentControllerContext. ...
+		 *	  let controllerContext = this;
+		 *	  // controllerContext. ...
 		 *    // HERE YOU HANDLE THE DATA
 		 *	 }
 		 * };
@@ -986,7 +999,7 @@ sap.ui.define([
 				 * @property {Object}						_odataEntities						Object should contain the mandatory and optional properties for the call of the OData (See example of usage)
 				 * @property {Object}						_odataEntities.oDataServiceModel	Object should contain the ODataModel of type sap.ui.model.odata.v2.ODataModel.
 				 * @property {String}						_odataEntities.entitySet			String should contain the Entity Set to which point the WebService. 
-				 * @property {String}						_odataEntities.data					In case the .create method is used then data is mandatory for creation of the fields in the backend.
+				 * @property {Object}						_odataEntities.data					In case the .create method is used then data is mandatory for creation of the fields in the backend.
 				 * @property {Object}						_odataEntities.currentView			Object should contain the Current View from where the function is called.
 				 * @property {Function}						_odataEntities.successCallback		Function should contain success callback where the data should be handled.
 				 * @property {sap.ui.model.Sorter[]}		_odataEntities.sorters				Map should contain success callback where the data should be handled.
@@ -1042,7 +1055,7 @@ sap.ui.define([
 
 				if (entities.hasOwnProperty('currentView')) {
 					mandatoryODataEntities['currentView'] = entities.currentView;
-					mandatoryODataEntities['currentControllerContext'] = entities.currentView.getController();
+					mandatoryODataEntities['controllerContext'] = entities.currentView.getController();
 				}
 
 				if (entities.hasOwnProperty('oDataServiceModel')) {
@@ -1071,8 +1084,14 @@ sap.ui.define([
 			}
 
 			_showErrorMessage(errorResponse) {
-				this._odataEntities.currentControllerContext.messageBox.showErrorMessage(`${errorResponse.message}`,
-					`${errorResponse.responseText}`);
+				let isWebServiceTimeout = (errorResponse.statusCode === 503);
+						
+				if(isWebServiceTimeout) {
+					errorResponse.message = 'Time-out van Web Service';
+					errorResponse.responseText = 'Herlaad alstublieft de pagina.';
+				}
+				
+				this._odataEntities.controllerContext.messageBox.showErrorMessage(`${errorResponse.message}`, `${errorResponse.responseText}`);
 			}
 
 			_attachBusyStateEvents(busyDialog) {
@@ -1138,7 +1157,7 @@ sap.ui.define([
 				});
 			}
 
-			_whichRequestTypeIs(requestType) {
+			_byRequestTypeMakeWebServiceCall(requestType) {
 				const REQUEST_TYPE = {
 						READ: 'read',
 						CREATE: 'create',
@@ -1156,11 +1175,11 @@ sap.ui.define([
 				if (requestType === REQUEST_TYPE.DELETE)
 					return this._buildDeleteRequest();
 
-				this._odataEntities.currentControllerContext.messageBox.showErrorMessage(ERROR_MESSAGE);
+				this._odataEntities.controllerContext.messageBox.showErrorMessage(ERROR_MESSAGE);
 
 				return;
 			}
-
+			
 			/**
 			 * This method creates a Promise and perform the .read .create .update .delete operation.
 			 * 
@@ -1175,9 +1194,9 @@ sap.ui.define([
 
 				(async() => {
 					try {
-						const promiseResponse = await that._whichRequestTypeIs(requestType);
+						const promiseResponse = await that._byRequestTypeMakeWebServiceCall(requestType);
 
-						that._odataEntities.successCallback.call(that._odataEntities.currentControllerContext, promiseResponse);
+						that._odataEntities.successCallback.call(that._odataEntities.controllerContext, promiseResponse);
 
 					} catch (errorResponse) {
 						that._showErrorMessage(errorResponse);
@@ -1226,9 +1245,11 @@ sap.ui.define([
 				 * @property {Object}		entities.suggestionInputEvent	Event of the input from where the suggestion is called
 				 * @property {String}		entities.suggestionTargetModel	The collection of the suggestions
 				 * @property {Array}		entities.bindings.rows			An array with the bindings of the fields
+				 * 
 				 * @property {Array}		entities.bindings.columns		An array of objects with text of the columns and the width
-				 * @property {Object}		entities.bindings.columns.text	Text of the column
-				 * @property {Object}		entities.bindings.columns.width	Width of the column
+				 * @property {String}		entities.bindings.columns.text	Text of the column
+				 * @property {String}		entities.bindings.columns.width	Width of the column (%, rem, px ...)
+				 * 
 				 * @property {Object}		entities.controllerContext		The current controller context from where class is initalized
 				 */
 
@@ -1283,7 +1304,7 @@ sap.ui.define([
 				return false;
 			}
 
-			_correctWidthRowsWhenDevice(width) {
+			_correctWidthRowsWhenMobileDevice(width) {
 				let columnsFullWidth = (this._rowPercentageWhenDevice() * this.entities.bindings.rows.length); // 5 or 15 multiplied with rows number
 
 				this.entities.suggestionInputEvent.getSource().setMaxSuggestionWidth(`${columnsFullWidth.toString()}%`);
@@ -1299,7 +1320,13 @@ sap.ui.define([
 
 				return columnWidthLength;
 			}
-
+			
+			_setBusyState(isBusy) {
+				let suggestionPopover = this.entities.suggestionInputEvent.getSource()._getSuggestionsPopover()._oPopover;
+				
+				suggestionPopover.setBusy(isBusy);	
+			}
+			
 			_buildRows() {
 				let columnTemplate = new sap.m.ColumnListItem();
 
@@ -1349,20 +1376,26 @@ sap.ui.define([
 			}
 
 			/**
-			 * This method is fired after the popup is closed 
+			 * This method is fired after user press 'ESC' or outside of the suggestion popup
 			 * @public
 			 * @memberof InitializeSuggestion
 			 * @method
 			 */
 
-			onPopupClose() {
+			attachOnPopupClose(callback) {
 
-				/*	let tabularPopup = this.entities.suggestionInputEvent.getSource()._getSuggestionsPopover()._oPopover;
+				let tabularPopup = this.entities.suggestionInputEvent.getSource()._getSuggestionsPopover()._oPopover;
 
-					tabularPopup.attachEventOnce('afterClose', function (event) {
-						// TODO ADD THE FUNCTION 
-					}.bind(this));
-				*/
+				tabularPopup.attachEventOnce('afterClose', function (popupEvent) {
+					callback.call(this, popupEvent);
+						
+						// TODO ADD THE FUNCTION
+						// popupEvent.getParameters().openBy.getModel('tableModel').getData().generalLedgetAccountCollection.find( (item) => item.Kstar === '9100') 
+					
+					// event change of the sap.m.input can be used to retrieve the data as well
+					
+					debugger;
+				}.bind(this));
 
 			}
 
@@ -1382,17 +1415,18 @@ sap.ui.define([
 				if (this.getInputValue()) {
 
 					if (this.isPopupNotBuilded()) {
-						this._correctWidthRowsWhenDevice();
-
+						this._correctWidthRowsWhenMobileDevice();
 						this._buildColumns();
 						this._buildRows();
 					}
-
+					
 					this._buildFilters();
+					
+					this._setBusyState(true);
 					this._doFiltering();
-
+					this._setBusyState(false);
+					
 					this._validateSuggestionField();
-
 				}
 			}
 
@@ -1417,11 +1451,11 @@ sap.ui.define([
 		 * <Input liveChange="uppercaseAsIsTyped" ...
 		 * 
 		 * in CONTROLLER
-		 * this.uppercaseAsIsTyped(typedValue);
+		 * this.uppercaseInputValue(typedValue);
 		 * 
 		 */
 
-		uppercaseAsIsTyped: function (typedValueEvent) {
+		uppercaseInputValue: function (typedValueEvent) {
 
 			let inputSource = typedValueEvent.getSource();
 
@@ -1440,20 +1474,20 @@ sap.ui.define([
 			};
 			
 			let cleanInputClass = new this.CleanInputs(entities);
-				cleanInputClass.cleanAllControls();
+				cleanInputClass.cleanUIFields();
 		*/
-		
+
 		CleanInputs: class {
 			constructor(entitiesProperties) {
 				/**
 				 * @property {Object}		entitiesProperties						Object should contain the inputs array and the context of the controller
-				 * @property {Object}		entitiesProperties.arrayInputs			Object should contain the inputs array
+				 * @property {Array}		entitiesProperties.arrayInputs			Object should contain the inputs array
 				 * @property {Object}		entitiesProperties.controllerContext		Object should contain the 'this' of the controller
 				 */
-				 
+
 				this.entities = {
-					inputsArray : entitiesProperties.inputsArray,
-					controllerContext : entitiesProperties.controllerContext
+					inputsArray: entitiesProperties.inputsArray,
+					controllerContext: entitiesProperties.controllerContext
 				}
 			}
 
@@ -1472,12 +1506,11 @@ sap.ui.define([
 				case 'sap.m.TextArea':
 				case 'sap.m.DatePicker':
 				case 'sap.m.Input':
-					if (getControl.getValue !== '')
+					if (getControl.setValue)
 						getControl.setValue('');
-					
-					if(getControl.getDescription)
-						if (getControl.getDescription() !== '')
-							getControl.setDescription('');
+
+					if (getControl.setDescription)
+						getControl.setDescription('');
 
 					break;
 
@@ -1492,18 +1525,18 @@ sap.ui.define([
 						getControl.removeAllItems();
 						getControl.destroyItems();
 					}
-					
+
 					break;
 				}
 			}
-			
+
 			/**
 			 * This method cleans all the inputs provided as Array
 			 * @public 
 			 * @memberof CleanInputs
 			 * @method
 			 */
-			 
+
 			cleanUIFields() {
 				if (this._isArrayNotEmpty(this.entities.inputsArray))
 					this.entities.inputsArray.forEach(this._cleanByControlType, this.entities.controllerContext);
